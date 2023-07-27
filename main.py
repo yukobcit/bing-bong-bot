@@ -1,9 +1,6 @@
 import discord
 import os
-import requests
-import json
 import random
-from keep_alive import keep_alive
 import asyncio
 
 intents = discord.Intents.default()
@@ -100,5 +97,4 @@ async def send_message_randome_with_reaction():
         await asyncio.sleep(random_interval)
 
 
-keep_alive()
 client.run(os.environ['TOKEN'])
