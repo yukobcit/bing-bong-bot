@@ -13,6 +13,7 @@ bot = commands.Bot(command_prefix='!', intents=intents)
 
 mongo_uri = os.environ.get("MONGO_URI")
 mongo_collection_name = os.environ.get("MONGO_COLLECTION")
+mongo_collection_name2 = os.environ.get("MONGO_COLLECTION")
 
 try:
     mongo_client = pymongo.MongoClient(mongo_uri)
@@ -24,6 +25,7 @@ except pymongo.errors.ConnectionFailure as e:
 
 db = mongo_client[os.environ.get("MONGO_DB")]
 mongo_collection = db[mongo_collection_name]
+mongo_collection2 = db[mongo_collection_name2]
 
 # TARGET_CHANNEL_ID = 1131754439410208808
 ROLE_NAME = "NO LIFE"
@@ -94,6 +96,11 @@ async def on_reaction_add(reaction, user):
                 }
                 mongo_collection.insert_one(data)
 
+                # Mark the message as reacted in the database
+                query = {"message_id": reaction.message.id}
+                update = {"$set": {"reacted": True}}
+                mongo_collection2.update_one(query, update)
+
                 # after 1 hour, remove role
                 await asyncio.sleep(60 * SPAN)
                 await user.remove_roles(role)
@@ -111,13 +118,29 @@ async def send_message_random_with_reaction():
         return
 
     while True:
+
+        # Check and delete unreacted messages from the previous cycle
+        unreacted_messages = mongo_collection.find({"reacted": False})
+        for unreacted_message in unreacted_messages:
+            message_id = unreacted_message["message_id"]
+            message = await channel.fetch_message(message_id)
+            await message.delete()
+
         sent_message = await channel.send(MSG)
         await sent_message.add_reaction(EMOJI)
 
         # Set random interval between 1 hour to 2 hours
-        interval_min = 60 * 60
-        interval_max = 60 * 120
+        interval_min = 60 * 2
+        interval_max = 60 * 3
         random_interval = random.randint(interval_min, interval_max)
+
+        # Save the message ID and current time to the database
+        data = {
+            "message_id": sent_message.id,
+            "timestamp": datetime.datetime.now(),
+            "reacted": False
+        }
+        mongo_collection2.insert_one(data)
 
         # Sleep random interval
         await asyncio.sleep(random_interval)
