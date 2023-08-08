@@ -44,7 +44,7 @@ SPAN = 60
 CHANNEL_NAME = "test_channel"
 
 # ServerName
-GUILD_NAME = "Your Server Name"
+GUILD_NAME = "たぬめんぽんぽこりーん"
 
 TARGET_GUILD_ID = None
 TARGET_CHANNEL = None
