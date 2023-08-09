@@ -13,7 +13,7 @@ bot = commands.Bot(command_prefix='!', intents=intents)
 
 mongo_uri = os.environ.get("MONGO_URI")
 mongo_collection_name = os.environ.get("MONGO_COLLECTION")
-mongo_collection_name2 = os.environ.get("MONGO_COLLECTION")
+mongo_collection_name2 = os.environ.get("MONGO_COLLECTION2")
 
 try:
     mongo_client = pymongo.MongoClient(mongo_uri)
