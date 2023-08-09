@@ -13,7 +13,6 @@ bot = commands.Bot(command_prefix='!', intents=intents)
 
 mongo_uri = os.environ.get("MONGO_URI")
 mongo_collection_name = os.environ.get("MONGO_COLLECTION")
-mongo_collection_name2 = os.environ.get("MONGO_COLLECTION2")
 
 try:
     mongo_client = pymongo.MongoClient(mongo_uri)
@@ -25,7 +24,6 @@ except pymongo.errors.ConnectionFailure as e:
 
 db = mongo_client[os.environ.get("MONGO_DB")]
 mongo_collection = db[mongo_collection_name]
-mongo_collection2 = db[mongo_collection_name2]
 
 # TARGET_CHANNEL_ID = 1131754439410208808
 ROLE_NAME = "NO LIFE"
@@ -87,19 +85,17 @@ async def on_reaction_add(reaction, user):
                 # delete the message after giving the role
                 await reaction.message.delete()
 
-                # create data in db
+                # Add or update data in db
                 current_time = datetime.datetime.now()
                 data = {
-                    "server_id": guild.id,
+                    "message_id": reaction.message.id,
+                    "server_id": reaction.message.guild.id,
                     "user_id": user.id,
                     "reaction_time": current_time,
+                    "reacted": True
                 }
-                mongo_collection.insert_one(data)
-
-                # Mark the message as reacted in the database
                 query = {"message_id": reaction.message.id}
-                update = {"$set": {"reacted": True}}
-                mongo_collection2.update_one(query, update)
+                mongo_collection.update_one(query, {"$set": data}, upsert=True)
 
                 # after 1 hour, remove role
                 await asyncio.sleep(60 * SPAN)
@@ -140,7 +136,7 @@ async def send_message_random_with_reaction():
             "timestamp": datetime.datetime.now(),
             "reacted": False
         }
-        mongo_collection2.insert_one(data)
+        mongo_collection.insert_one(data)
 
         # Sleep random interval
         await asyncio.sleep(random_interval)
