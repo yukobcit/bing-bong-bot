@@ -98,7 +98,7 @@ async def on_reaction_add(reaction, user):
                 mongo_collection.update_one(query, {"$set": data}, upsert=True)
 
                 # after 1 hour, remove role
-                await asyncio.sleep(60 * SPAN)
+                await asyncio.sleep(60 * 1)
                 await user.remove_roles(role)
 
             finally:
