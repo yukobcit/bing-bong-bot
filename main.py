@@ -119,8 +119,11 @@ async def send_message_random_with_reaction():
         unreacted_messages = mongo_collection.find({"reacted": False})
         for unreacted_message in unreacted_messages:
             message_id = unreacted_message["message_id"]
-            message = await channel.fetch_message(message_id)
-            await message.delete()
+            try:
+                message = await channel.fetch_message(message_id)
+                await message.delete()
+            except discord.NotFound:
+                pass  # Message is already deleted or not accessible
 
         sent_message = await channel.send(MSG)
         await sent_message.add_reaction(EMOJI)
